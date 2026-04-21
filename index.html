@@ -567,7 +567,7 @@
 
 <script>
   // 🔧 PASTE YOUR APPS SCRIPT WEB APP URL HERE after deploying
-  const SCRIPT_URL = https://script.google.com/macros/s/AKfycbyN6xdFp4KID5Y-FgLduXDmPCYG0_r7JJHhpiqhUNqMmUAE9aJ1zRKnP7pAOYNlmBzb/exec;
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyN6xdFp4KID5Y-FgLduXDmPCYG0_r7JJHhpiqhUNqMmUAE9aJ1zRKnP7pAOYNlmBzb/exec';
 
   const AVATAR_COLORS = [
     '#4f46e5','#7c3aed','#db2777','#dc2626','#d97706',
@@ -581,11 +581,11 @@
   async function loadStories() {
     try {
       showLoading(true);
-      const res = await fetch(`${SCRIPT_URL}?action=get`);
+      const res  = await fetch(`${SCRIPT_URL}?action=get`, { redirect: 'follow' });
       const data = await res.json();
       storiesCache = data.stories || [];
     } catch(e) {
-      showToast('Failed to load stories. Check your Script URL.');
+      showToast('Could not load stories from server.');
       storiesCache = [];
     } finally {
       showLoading(false);
@@ -593,6 +593,14 @@
       updateStats();
       renderPodium();
     }
+  }
+
+  // Google Apps Script requires GET requests for reading,
+  // POST via form-encoded for writing (avoids CORS preflight)
+  async function scriptPost(params) {
+    const form = new FormData();
+    Object.entries(params).forEach(([k, v]) => form.append(k, v ?? ''));
+    await fetch(SCRIPT_URL, { method: 'POST', body: form, redirect: 'follow', mode: 'no-cors' });
   }
 
   function showLoading(on) {
@@ -709,12 +717,9 @@
   async function deleteStory(id) {
     if (!confirm('Delete this story? This cannot be undone.')) return;
     try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'delete', id })
-      });
+      await scriptPost({ action: 'delete', id });
       showToast('Story deleted.');
-      await loadStories();
+      setTimeout(loadStories, 1000);
     } catch(e) { showToast('Delete failed. Please try again.'); }
   }
 
@@ -747,10 +752,7 @@
       renderPodium();
     }
     try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'like', id, delta })
-      });
+      await scriptPost({ action: 'like', id, delta });
     } catch(e) { showToast('Like could not be saved.'); }
   }
 
@@ -893,17 +895,10 @@
     }
 
     try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'add',
-          name, title, category, subCategory, story,
-          highlights, results, impact, learnings
-        })
-      });
+      await scriptPost({ action: 'add', name, title, category, subCategory, story, highlights, results, impact, learnings });
       closeModal();
       showToast('Your story has been published! 🎉');
-      await loadStories();
+      setTimeout(loadStories, 1000);
       scrollToStories();
     } catch(e) { showToast('Failed to publish. Please try again.'); }
   }
