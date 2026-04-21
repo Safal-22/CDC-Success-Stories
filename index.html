@@ -566,20 +566,38 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  const STORAGE_KEY = 'success_stories_v1';
+  // 🔧 PASTE YOUR APPS SCRIPT WEB APP URL HERE after deploying
+  const SCRIPT_URL = https://script.google.com/macros/s/AKfycbyN6xdFp4KID5Y-FgLduXDmPCYG0_r7JJHhpiqhUNqMmUAE9aJ1zRKnP7pAOYNlmBzb/exec;
 
   const AVATAR_COLORS = [
     '#4f46e5','#7c3aed','#db2777','#dc2626','#d97706',
     '#059669','#0284c7','#0891b2','#65a30d','#9333ea'
   ];
 
-  function getStories() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-    catch { return []; }
+  let storiesCache = [];
+
+  function getStories() { return storiesCache; }
+
+  async function loadStories() {
+    try {
+      showLoading(true);
+      const res = await fetch(`${SCRIPT_URL}?action=get`);
+      const data = await res.json();
+      storiesCache = data.stories || [];
+    } catch(e) {
+      showToast('Failed to load stories. Check your Script URL.');
+      storiesCache = [];
+    } finally {
+      showLoading(false);
+      renderStories();
+      updateStats();
+      renderPodium();
+    }
   }
 
-  function saveStories(stories) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stories));
+  function showLoading(on) {
+    document.getElementById('storiesGrid').innerHTML = on
+      ? `<div class="empty"><p style="color:var(--muted)">Loading stories...</p></div>` : '';
   }
 
   function hashCode(str) {
@@ -688,14 +706,16 @@
     </div>`;
   }
 
-  function deleteStory(id) {
+  async function deleteStory(id) {
     if (!confirm('Delete this story? This cannot be undone.')) return;
-    const stories = getStories().filter(s => s.id !== id);
-    saveStories(stories);
-    renderStories();
-    updateStats();
-    renderPodium();
-    showToast('Story deleted.');
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'delete', id })
+      });
+      showToast('Story deleted.');
+      await loadStories();
+    } catch(e) { showToast('Delete failed. Please try again.'); }
   }
 
   function toggleExtras(id, btn) {
@@ -712,19 +732,26 @@
     btn.textContent = expanded ? 'Read more' : 'Show less';
   }
 
-  function toggleLike(id, btn) {
+  async function toggleLike(id, btn) {
     const likedKey = 'liked_' + id;
     const already  = localStorage.getItem(likedKey) === '1';
-    const stories  = getStories();
-    const idx      = stories.findIndex(s => s.id === id);
-    if (idx === -1) return;
-    stories[idx].likes = (stories[idx].likes || 0) + (already ? -1 : 1);
+    const delta    = already ? -1 : 1;
     localStorage.setItem(likedKey, already ? '0' : '1');
-    saveStories(stories);
     btn.classList.toggle('liked', !already);
-    btn.querySelector('span').textContent = stories[idx].likes;
-    updateStats();
-    renderPodium();
+    // optimistic UI update
+    const story = storiesCache.find(s => s.id === id);
+    if (story) {
+      story.likes = (story.likes || 0) + delta;
+      btn.querySelector('span').textContent = story.likes;
+      updateStats();
+      renderPodium();
+    }
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'like', id, delta })
+      });
+    } catch(e) { showToast('Like could not be saved.'); }
   }
 
   function renderPodium() {
@@ -845,7 +872,7 @@
       document.getElementById('inputStory').value.length;
   }
 
-  function submitStory() {
+  async function submitStory() {
     const name       = document.getElementById('inputName').value.trim();
     const title      = document.getElementById('inputTitle').value.trim();
     const category   = document.getElementById('inputCategory').value;
@@ -865,19 +892,20 @@
       return;
     }
 
-    const stories = getStories();
-    stories.unshift({
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-      name, title, category, subCategory, story, highlights, results, impact, learnings,
-      date: new Date().toISOString(),
-      likes: 0
-    });
-    saveStories(stories);
-    closeModal();
-    renderStories();
-    renderPodium();
-    showToast('Your story has been published! 🎉');
-    scrollToStories();
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'add',
+          name, title, category, subCategory, story,
+          highlights, results, impact, learnings
+        })
+      });
+      closeModal();
+      showToast('Your story has been published! 🎉');
+      await loadStories();
+      scrollToStories();
+    } catch(e) { showToast('Failed to publish. Please try again.'); }
   }
 
   function scrollToStories() {
@@ -891,9 +919,7 @@
     setTimeout(() => t.classList.remove('show'), 3000);
   }
 
-  renderStories();
-  updateStats();
-  renderPodium();
+  loadStories();
 </script>
 </body>
 </html>
