@@ -456,6 +456,7 @@
     <option value="oldest">Oldest First</option>
     <option value="likes">Most Liked</option>
   </select>
+  <button class="btn btn-submit" onclick="exportToExcel()" style="padding:10px 18px;font-size:0.9rem;">⬇ Export Excel</button>
 </div>
 
 <div class="grid" id="storiesGrid"></div>
@@ -912,6 +913,27 @@
     t.textContent = msg;
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function exportToExcel() {
+    const stories = getStories();
+    if (!stories.length) { showToast('No stories to export.'); return; }
+    const headers = ['Name','Title','Category','Sub-Category','Story','Execution Highlights','Results & Outcomes','Business Impact','Key Learnings','Likes','Date'];
+    const rows = stories.map(s => [
+      s.name, s.title, cap(s.category), subCategoryLabel(s.subCategory),
+      s.story, s.highlights, s.results, s.impact, s.learnings,
+      s.likes || 0, formatDate(s.date)
+    ]);
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'CDC_Success_Stories.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Exported successfully!');
   }
 
   loadStories();
