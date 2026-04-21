@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CDC Success Stories</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --accent: #f59e0b;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: white;
+      padding: 32px 40px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 24px;
+    }
+    .header-center { text-align: center; }
+    header h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px; }
+    header p  { margin-top: 6px; opacity: 0.85; font-size: 1rem; }
+
+    /* Nav bar inside header */
+    .header-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    /* Podium — classic Olympic style matching reference image */
+    .podium-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .podium-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.75;
+      margin-bottom: 8px;
+    }
+    .podium {
+      display: flex;
+      align-items: flex-end;
+      gap: 0;
+      filter: drop-shadow(0 6px 14px rgba(0,0,0,0.4));
+    }
+    .podium-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+    .podium-name {
+      font-size: 0.65rem;
+      font-weight: 700;
+      max-width: 72px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    }
+    .podium-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.8rem;
+      color: #fff;
+      border: 2px solid rgba(255,255,255,0.85);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+    }
+    /* Platform block — white/grey like the reference */
+    .podium-block {
+      width: 72px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border-radius: 2px 2px 0 0;
+    }
+    .podium-num {
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1;
+      font-family: Arial Black, sans-serif;
+    }
+    .podium-trophy {
+      font-size: 1.1rem;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    .podium-likes {
+      font-size: 0.58rem;
+      font-weight: 700;
+      opacity: 0.8;
+      margin-top: 3px;
+    }
+    /* White blocks like reference, tinted edge for depth */
+    .podium-block.p1 {
+      height: 110px;
+      background: linear-gradient(180deg, #f5f5f5 0%, #dde2e8 100%);
+      border-left:  2px solid #c0c8d0;
+      border-right: 2px solid #c0c8d0;
+      border-top:   2px solid #eaeef2;
+      color: #3a3a3a;
+    }
+    .podium-block.p2 {
+      height: 72px;
+      background: linear-gradient(180deg, #f5f5f5 0%, #dde2e8 100%);
+      border-left:  2px solid #c0c8d0;
+      border-right: 2px solid #c0c8d0;
+      border-top:   2px solid #eaeef2;
+      color: #3a3a3a;
+    }
+    .podium-block.p3 {
+      height: 52px;
+      background: linear-gradient(180deg, #f5f5f5 0%, #dde2e8 100%);
+      border-left:  2px solid #c0c8d0;
+      border-right: 2px solid #c0c8d0;
+      border-top:   2px solid #eaeef2;
+      color: #3a3a3a;
+    }
+    /* Shared base connecting all three */
+    .podium-base {
+      display: block;
+      height: 12px;
+      width: 216px; /* 3 × 72px */
+      background: linear-gradient(180deg, #dde2e8 0%, #b0bec5 100%);
+      border-radius: 0 0 4px 4px;
+      border-left:  2px solid #c0c8d0;
+      border-right: 2px solid #c0c8d0;
+      border-bottom: 2px solid #96a6b0;
+    }
+    .podium-empty { font-size: 0.75rem; opacity: 0.55; font-style: italic; margin-top: 4px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.18s;
+    }
+    .btn-primary { background: white; color: var(--primary); }
+    .btn-primary:hover { background: #eef2ff; }
+    .btn-outline { background: transparent; color: white; border: 2px solid rgba(255,255,255,0.6); }
+    .btn-outline:hover { background: rgba(255,255,255,0.15); }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      padding: 20px 24px;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .stats-bar span strong { color: var(--text); font-size: 1.1rem; }
+
+    /* Filter / Search */
+    .toolbar {
+      max-width: 1100px;
+      margin: 28px auto 0;
+      padding: 0 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+    .search-box:focus { border-color: var(--primary); }
+    .filter-select {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: white;
+      cursor: pointer;
+      outline: none;
+    }
+    .filter-select:focus { border-color: var(--primary); }
+
+    /* Grid */
+    .grid {
+      max-width: 1100px;
+      margin: 24px auto 48px;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    /* Card */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); transform: translateY(-2px); }
+
+    .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .card-title  { font-size: 1.1rem; font-weight: 700; line-height: 1.3; }
+    .badge {
+      flex-shrink: 0;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #ede9fe;
+      color: #6d28d9;
+    }
+    .badge.technology          { background: #dbeafe; color: #1d4ed8; }
+    .badge.people              { background: #dcfce7; color: #15803d; }
+    .badge.training-upskilling { background: #fef9c3; color: #854d0e; }
+    .badge.sub-badge           { background: #f0fdf4; color: #166534; font-size: 0.68rem; }
+
+    .card-story {
+      font-size: 0.93rem;
+      color: #374151;
+      line-height: 1.65;
+      flex: 1;
+    }
+    .card-story.truncated {
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .read-more {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+      text-align: left;
+    }
+    .read-more:hover { text-decoration: underline; }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .author { display: flex; align-items: center; gap: 10px; }
+    .avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem;
+      color: white;
+    }
+    .author-name  { font-weight: 600; font-size: 0.9rem; }
+    .author-date  { font-size: 0.78rem; color: var(--muted); }
+    .likes-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 5px;
+      transition: all 0.15s;
+      color: var(--muted);
+    }
+    .likes-btn:hover, .likes-btn.liked { border-color: #fb7185; color: #e11d48; background: #fff1f2; }
+    .delete-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 10px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+    .delete-btn:hover { border-color: #f87171; background: #fff1f2; }
+
+    /* Extra sections on card */
+    .card-extras { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+    .card-section { background: var(--bg); border-left: 3px solid var(--primary); border-radius: 0 6px 6px 0; padding: 10px 12px; }
+    .section-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 4px; }
+    .section-text  { font-size: 0.88rem; color: #374151; line-height: 1.55; }
+
+    /* Empty state */
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--muted);
+    }
+    .empty svg { opacity: 0.3; margin-bottom: 16px; }
+    .empty p { font-size: 1.05rem; margin-bottom: 4px; color: var(--text); font-weight: 600; }
+    .empty small { font-size: 0.9rem; }
+
+    /* Modal overlay */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(15,23,42,0.45);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+      padding: 16px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: white;
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 32px;
+      transform: translateY(16px);
+      transition: transform 0.2s;
+    }
+    .overlay.open .modal { transform: translateY(0); }
+
+    .modal h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; }
+    .modal p.sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    label { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+    input[type="text"], textarea, select {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.18s;
+      width: 100%;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--primary); }
+    textarea { resize: vertical; min-height: 120px; }
+
+    .char-count { font-size: 0.78rem; color: var(--muted); text-align: right; margin-top: 2px; }
+
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+    .btn-cancel { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+    .btn-cancel:hover { background: #e2e8f0; }
+    .btn-submit { background: var(--primary); color: white; }
+    .btn-submit:hover { background: var(--primary-hover); }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #1e293b; color: white;
+      padding: 12px 20px; border-radius: 8px;
+      font-size: 0.9rem; font-weight: 500;
+      transform: translateY(80px); opacity: 0;
+      transition: all 0.3s;
+      z-index: 200;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 768px) {
+      header { grid-template-columns: 1fr; text-align: center; padding: 24px 16px; gap: 16px; }
+      .header-actions { align-items: center; flex-direction: row; justify-content: center; }
+      .podium-wrap { align-items: center; }
+      header h1 { font-size: 1.8rem; }
+      .grid { grid-template-columns: 1fr; }
+      .modal { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <!-- Left: Winners Podium -->
+  <div class="podium-wrap">
+    <div class="podium-title">Top Stories</div>
+    <div class="podium" id="podium"></div>
+  </div>
+
+  <!-- Center: Title -->
+  <div class="header-center">
+    <h1>🏆 CDC Success Stories</h1>
+    <p>Real people. Real wins. Inspire and be inspired.</p>
+  </div>
+
+  <!-- Right: Actions -->
+  <div class="header-actions">
+    <button class="btn btn-primary" onclick="openModal()">+ Share Your Story</button>
+    <button class="btn btn-outline" onclick="scrollToStories()">Browse Stories</button>
+  </div>
+</header>
+
+<div class="stats-bar" id="statsBar">
+  <span><strong id="totalCount">0</strong> Stories</span>
+  <span><strong id="totalLikes">0</strong> Likes</span>
+  <span><strong id="categoryCount">0</strong> Categories</span>
+</div>
+
+<div class="toolbar">
+  <input class="search-box" type="text" id="searchInput" placeholder="Search stories..." oninput="renderStories()" />
+  <select class="filter-select" id="categoryFilter" onchange="renderStories()">
+    <option value="">All Categories</option>
+    <option value="technology">Technology</option>
+    <option value="people">People</option>
+    <option value="training-upskilling">Training &amp; UpSkilling</option>
+  </select>
+  <select class="filter-select" id="sortFilter" onchange="renderStories()">
+    <option value="newest">Newest First</option>
+    <option value="oldest">Oldest First</option>
+    <option value="likes">Most Liked</option>
+  </select>
+</div>
+
+<div class="grid" id="storiesGrid"></div>
+
+<!-- Add Story Modal -->
+<div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal">
+    <h2>Share Your Story</h2>
+    <p class="sub">Your journey could inspire thousands of people.</p>
+
+    <div class="form-group">
+      <label for="inputName">Your Name *</label>
+      <input type="text" id="inputName" placeholder="e.g. Alex Johnson" maxlength="60" />
+    </div>
+
+    <div class="form-group">
+      <label for="inputTitle">Story Title *</label>
+      <input type="text" id="inputTitle" placeholder="e.g. How I landed my dream job" maxlength="100" />
+      <div class="char-count"><span id="titleCount">0</span>/100</div>
+    </div>
+
+    <div class="form-group">
+      <label for="inputCategory">Category *</label>
+      <select id="inputCategory">
+        <option value="">Select a category</option>
+        <option value="technology">Technology</option>
+        <option value="people">People</option>
+        <option value="training-upskilling">Training &amp; UpSkilling</option>
+          </select>
+    </div>
+
+    <div class="form-group" id="subCategoryGroup" style="display:none">
+      <label for="inputSubCategory">Sub-Category</label>
+      <select id="inputSubCategory">
+        <option value="">Select a sub-category</option>
+        <!-- People sub-categories -->
+        <optgroup id="sub-people" label="— People —" style="display:none">
+          <option value="hiring-onboarding">Hiring &amp; Onboarding Improvements</option>
+          <option value="employee-engagement">Employee Engagement Initiatives</option>
+          <option value="diversity-inclusion">Diversity &amp; Inclusion Wins</option>
+          <option value="team-collaboration">Team Collaboration Success</option>
+          <option value="leadership-development">Leadership Development Stories</option>
+          <option value="retention-attrition">Retention / Attrition Reduction</option>
+          <option value="conflict-resolution">Conflict Resolution Outcomes</option>
+        </optgroup>
+        <!-- Training & UpSkilling sub-categories -->
+        <optgroup id="sub-training" label="— Training & UpSkilling —" style="display:none">
+          <option value="leadership-mgmt-training">Leadership &amp; Management Training</option>
+          <option value="technical-skills-training">Technical Skills Training</option>
+          <option value="soft-skills-development">Soft Skills Development</option>
+          <option value="digital-tools-training">Digital Tools &amp; Platform Training</option>
+          <option value="certification-achievement">Professional Certification Achievement</option>
+          <option value="compliance-regulatory">Compliance &amp; Regulatory Training</option>
+          <option value="mentoring-coaching">Mentoring &amp; Coaching Program</option>
+          <option value="elearning-selfpaced">E-Learning &amp; Self-Paced Programs</option>
+          <option value="knowledge-transfer">Knowledge Transfer Initiative</option>
+        </optgroup>
+        <!-- Technology sub-categories -->
+        <optgroup id="sub-technology" label="— Technology —" style="display:none">
+          <option value="process-automation">Process Automation</option>
+          <option value="ai-ml">AI &amp; Machine Learning</option>
+          <option value="cloud-migration">Cloud Migration</option>
+          <option value="cybersecurity">Cybersecurity</option>
+          <option value="agile-devops">Agile / DevOps Adoption</option>
+          <option value="platform-modernization">Platform Modernization</option>
+          <option value="cost-optimization">Cost Optimization through Tech</option>
+          <option value="performance-scalability">Performance &amp; Scalability Improvement</option>
+          <option value="incident-management">Incident Management &amp; Resolution</option>
+          <option value="problem-management">Problem Management &amp; Root Cause</option>
+          <option value="disaster-recovery">Disaster Recovery Testing &amp; Implementation</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="inputStory">Your Story *</label>
+      <textarea id="inputStory" placeholder="Tell us your success story..." maxlength="2000" oninput="updateStoryCount()"></textarea>
+      <div class="char-count"><span id="storyCount">0</span>/2000</div>
+    </div>
+
+    <div class="form-group">
+      <label for="inputHighlights">Execution Highlights</label>
+      <textarea id="inputHighlights" placeholder="What key steps or actions did you take to execute your plan?" maxlength="1000"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="inputResults">Results &amp; Outcomes</label>
+      <textarea id="inputResults" placeholder="What were the measurable results or outcomes you achieved?" maxlength="1000"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="inputImpact">Business Impact</label>
+      <textarea id="inputImpact" placeholder="How did this success impact your business, team, or organization?" maxlength="1000"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="inputLearnings">Key Learnings</label>
+      <textarea id="inputLearnings" placeholder="What lessons or insights did you gain from this experience?" maxlength="1000"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-submit" onclick="submitStory()">Publish Story</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const STORAGE_KEY = 'success_stories_v1';
+
+  const AVATAR_COLORS = [
+    '#4f46e5','#7c3aed','#db2777','#dc2626','#d97706',
+    '#059669','#0284c7','#0891b2','#65a30d','#9333ea'
+  ];
+
+  function getStories() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function saveStories(stories) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stories));
+  }
+
+  function hashCode(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  }
+
+  function avatarColor(name) {
+    return AVATAR_COLORS[hashCode(name) % AVATAR_COLORS.length];
+  }
+
+  function initials(name) {
+    return name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  }
+
+  function formatDate(iso) {
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function updateStats() {
+    const stories = getStories();
+    document.getElementById('totalCount').textContent = stories.length;
+    document.getElementById('totalLikes').textContent = stories.reduce((s, x) => s + (x.likes || 0), 0);
+    const cats = new Set(stories.map(s => s.category).filter(Boolean));
+    document.getElementById('categoryCount').textContent = cats.size;
+  }
+
+  function renderStories() {
+    let stories = getStories();
+    const search   = document.getElementById('searchInput').value.toLowerCase();
+    const category = document.getElementById('categoryFilter').value;
+    const sort     = document.getElementById('sortFilter').value;
+
+    if (search)   stories = stories.filter(s =>
+      s.title.toLowerCase().includes(search) ||
+      s.story.toLowerCase().includes(search) ||
+      s.name.toLowerCase().includes(search)
+    );
+    if (category) stories = stories.filter(s => s.category === category);
+
+    if (sort === 'newest') stories.sort((a, b) => new Date(b.date) - new Date(a.date));
+    if (sort === 'oldest') stories.sort((a, b) => new Date(a.date) - new Date(b.date));
+    if (sort === 'likes')  stories.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+
+    const grid = document.getElementById('storiesGrid');
+    if (stories.length === 0) {
+      grid.innerHTML = `
+        <div class="empty">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <p>No stories found</p>
+          <small>Be the first to share your success story!</small>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = stories.map(s => cardHTML(s)).join('');
+    updateStats();
+  }
+
+  function extraSection(label, text) {
+    if (!text) return '';
+    return `<div class="card-section"><div class="section-label">${label}</div><div class="section-text">${escHtml(text)}</div></div>`;
+  }
+
+  function cardHTML(s) {
+    const likedKey = 'liked_' + s.id;
+    const isLiked  = localStorage.getItem(likedKey) === '1';
+    const short    = s.story.length > 220;
+    const extras   = [
+      extraSection('Execution Highlights', s.highlights),
+      extraSection('Results & Outcomes',   s.results),
+      extraSection('Business Impact',      s.impact),
+      extraSection('Key Learnings',        s.learnings)
+    ].filter(Boolean);
+    return `
+    <div class="card" id="card-${s.id}">
+      <div class="card-header">
+        <div class="card-title">${escHtml(s.title)}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <span class="badge ${s.category}">${cap(s.category)}</span>
+          ${s.subCategory ? `<span class="badge sub-badge">${escHtml(subCategoryLabel(s.subCategory))}</span>` : ''}
+        </div>
+      </div>
+      <div class="card-story ${short ? 'truncated' : ''}" id="story-${s.id}">${escHtml(s.story)}</div>
+      ${short ? `<button class="read-more" onclick="toggleRead('${s.id}', this)">Read more</button>` : ''}
+      ${extras.length ? `<div class="card-extras" id="extras-${s.id}" style="display:none">${extras.join('')}</div>
+        <button class="read-more" onclick="toggleExtras('${s.id}', this)">Show details</button>` : ''}
+      <div class="card-footer">
+        <div class="author">
+          <div class="avatar" style="background:${avatarColor(s.name)}">${initials(s.name)}</div>
+          <div>
+            <div class="author-name">${escHtml(s.name)}</div>
+            <div class="author-date">${formatDate(s.date)}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="likes-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${s.id}', this)">
+            ♥ <span>${s.likes || 0}</span>
+          </button>
+          <button class="delete-btn" onclick="deleteStory('${s.id}')" title="Delete story">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function deleteStory(id) {
+    if (!confirm('Delete this story? This cannot be undone.')) return;
+    const stories = getStories().filter(s => s.id !== id);
+    saveStories(stories);
+    renderStories();
+    updateStats();
+    renderPodium();
+    showToast('Story deleted.');
+  }
+
+  function toggleExtras(id, btn) {
+    const el = document.getElementById('extras-' + id);
+    const hidden = el.style.display === 'none';
+    el.style.display = hidden ? 'block' : 'none';
+    btn.textContent = hidden ? 'Hide details' : 'Show details';
+  }
+
+  function toggleRead(id, btn) {
+    const el = document.getElementById('story-' + id);
+    const expanded = !el.classList.contains('truncated');
+    el.classList.toggle('truncated', expanded);
+    btn.textContent = expanded ? 'Read more' : 'Show less';
+  }
+
+  function toggleLike(id, btn) {
+    const likedKey = 'liked_' + id;
+    const already  = localStorage.getItem(likedKey) === '1';
+    const stories  = getStories();
+    const idx      = stories.findIndex(s => s.id === id);
+    if (idx === -1) return;
+    stories[idx].likes = (stories[idx].likes || 0) + (already ? -1 : 1);
+    localStorage.setItem(likedKey, already ? '0' : '1');
+    saveStories(stories);
+    btn.classList.toggle('liked', !already);
+    btn.querySelector('span').textContent = stories[idx].likes;
+    updateStats();
+    renderPodium();
+  }
+
+  function renderPodium() {
+    const top = [...getStories()].sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 3);
+    const el  = document.getElementById('podium');
+    if (!el) return;
+    if (top.length === 0) {
+      el.innerHTML = `<span class="podium-empty">No stories yet</span>`;
+      return;
+    }
+    // posIdx: 0=left, 1=centre, 2=right
+    // rankAtPos: which top[] index sits at each position
+    const rankAtPos   = [1, 0, 2];          // left=2nd, centre=1st, right=3rd
+    const numAtPos    = ['2', '1', '3'];
+    const trophyAtPos = ['🥈', '🏆', '🥉'];
+    const classAtPos  = ['p2', 'p1', 'p3'];
+    const slots = rankAtPos.map((rankIdx, posIdx) => {
+      const s   = top[rankIdx];
+      const num = numAtPos[posIdx];
+      const cls = classAtPos[posIdx];
+      const trp = trophyAtPos[posIdx];
+      if (!s) return `<div class="podium-slot"><div class="podium-block ${cls}"><div class="podium-num">${num}</div></div></div>`;
+      return `
+      <div class="podium-slot">
+        <div class="podium-name">${escHtml(s.name.split(' ')[0])}</div>
+        <div class="podium-avatar" style="background:${avatarColor(s.name)}" title="${escHtml(s.name)}">${initials(s.name)}</div>
+        <div class="podium-block ${cls}">
+          <div class="podium-trophy">${trp}</div>
+          <div class="podium-num">${num}</div>
+          <div class="podium-likes">♥ ${s.likes || 0}</div>
+        </div>
+      </div>`;
+    }).join('');
+    el.innerHTML = `<div><div style="display:flex;align-items:flex-end">${slots}</div><div class="podium-base"></div></div>`;
+  }
+
+  const SUB_LABELS = {
+    'hiring-onboarding':      'Hiring & Onboarding',
+    'employee-engagement':    'Employee Engagement',
+    'diversity-inclusion':    'Diversity & Inclusion',
+    'team-collaboration':     'Team Collaboration',
+    'leadership-development': 'Leadership Development',
+    'retention-attrition':    'Retention / Attrition',
+    'conflict-resolution':    'Conflict Resolution',
+    'process-automation':     'Process Automation',
+    'ai-ml':                  'AI & Machine Learning',
+    'cloud-migration':        'Cloud Migration',
+    'cybersecurity':          'Cybersecurity',
+    'agile-devops':           'Agile / DevOps',
+    'platform-modernization': 'Platform Modernization',
+    'cost-optimization':      'Cost Optimization',
+    'performance-scalability':'Performance & Scalability',
+    'incident-management':    'Incident Management',
+    'problem-management':     'Problem Management',
+    'disaster-recovery':          'Disaster Recovery',
+    'leadership-mgmt-training':   'Leadership & Mgmt Training',
+    'technical-skills-training':  'Technical Skills Training',
+    'soft-skills-development':    'Soft Skills Development',
+    'digital-tools-training':     'Digital Tools Training',
+    'certification-achievement':  'Certification Achievement',
+    'compliance-regulatory':      'Compliance & Regulatory',
+    'mentoring-coaching':         'Mentoring & Coaching',
+    'elearning-selfpaced':        'E-Learning Programs',
+    'knowledge-transfer':         'Knowledge Transfer'
+  };
+  function subCategoryLabel(val) { return SUB_LABELS[val] || val; }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function cap(str) { return str ? str.charAt(0).toUpperCase() + str.slice(1) : ''; }
+
+  /* Modal */
+  function openModal() {
+    document.getElementById('overlay').classList.add('open');
+    document.getElementById('inputName').focus();
+  }
+  function closeModal() {
+    document.getElementById('overlay').classList.remove('open');
+    clearForm();
+  }
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('overlay')) closeModal();
+  }
+
+  function clearForm() {
+    ['inputName','inputTitle','inputStory','inputHighlights','inputResults','inputImpact','inputLearnings']
+      .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('inputCategory').value = '';
+    document.getElementById('inputSubCategory').value = '';
+    document.getElementById('subCategoryGroup').style.display = 'none';
+    document.getElementById('sub-people').style.display     = 'none';
+    document.getElementById('sub-technology').style.display = 'none';
+    document.getElementById('sub-training').style.display   = 'none';
+    document.getElementById('titleCount').textContent = '0';
+    document.getElementById('storyCount').textContent = '0';
+  }
+
+  document.getElementById('inputTitle').addEventListener('input', function() {
+    document.getElementById('titleCount').textContent = this.value.length;
+  });
+
+  document.getElementById('inputCategory').addEventListener('change', function() {
+    const grp        = document.getElementById('subCategoryGroup');
+    const subSel     = document.getElementById('inputSubCategory');
+    const hasSub     = ['people', 'technology', 'training-upskilling'].includes(this.value);
+    grp.style.display = hasSub ? 'flex' : 'none';
+    subSel.value     = '';
+    // show only the relevant optgroup
+    document.getElementById('sub-people').style.display     = this.value === 'people'             ? '' : 'none';
+    document.getElementById('sub-technology').style.display = this.value === 'technology'         ? '' : 'none';
+    document.getElementById('sub-training').style.display   = this.value === 'training-upskilling'? '' : 'none';
+  });
+
+  function updateStoryCount() {
+    document.getElementById('storyCount').textContent =
+      document.getElementById('inputStory').value.length;
+  }
+
+  function submitStory() {
+    const name       = document.getElementById('inputName').value.trim();
+    const title      = document.getElementById('inputTitle').value.trim();
+    const category   = document.getElementById('inputCategory').value;
+    const story      = document.getElementById('inputStory').value.trim();
+    const subCategory = document.getElementById('inputSubCategory').value;
+    const highlights = document.getElementById('inputHighlights').value.trim();
+    const results    = document.getElementById('inputResults').value.trim();
+    const impact     = document.getElementById('inputImpact').value.trim();
+    const learnings  = document.getElementById('inputLearnings').value.trim();
+
+    if (!name || !title || !category || !story) {
+      showToast('Please fill in all required fields.');
+      return;
+    }
+    if (story.length < 30) {
+      showToast('Story must be at least 30 characters.');
+      return;
+    }
+
+    const stories = getStories();
+    stories.unshift({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+      name, title, category, subCategory, story, highlights, results, impact, learnings,
+      date: new Date().toISOString(),
+      likes: 0
+    });
+    saveStories(stories);
+    closeModal();
+    renderStories();
+    renderPodium();
+    showToast('Your story has been published! 🎉');
+    scrollToStories();
+  }
+
+  function scrollToStories() {
+    document.getElementById('storiesGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  renderStories();
+  updateStats();
+  renderPodium();
+</script>
+</body>
+</html>
