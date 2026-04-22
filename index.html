@@ -518,14 +518,14 @@
 
   /* ── Animated counter ────────────────────────── */
   function animateCount(el, target) {
+    if (!target) { el.textContent = 0; return; }
     var start = 0;
-    var duration = 1200;
-    var step = Math.ceil(target / (duration / 16));
+    var step = Math.ceil(target / 60);
     var timer = setInterval(function() {
       start += step;
       if (start >= target) { start = target; clearInterval(timer); }
       el.textContent = start;
-    }, 16);
+    }, 20);
   }
 
   /* ── Story of the Week ───────────────────────── */
@@ -623,4 +623,4 @@
   };
   function subCategoryLabel(val) { return SUB_LABELS[val] || val; }
 
-  /* ── Modal ───────────────────────────────
+  /* ── Modal ────────────────────
