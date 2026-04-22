@@ -144,6 +144,49 @@
     .toast { position: fixed; bottom: 24px; right: 24px; background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; transform: translateY(80px); opacity: 0; transition: all 0.3s; z-index: 200; }
     .toast.show { transform: translateY(0); opacity: 1; }
 
+    /* ── Gold shimmer on #1 podium ───────────────── */
+    @keyframes goldShimmer {
+      0%   { box-shadow: 0 0 8px 2px rgba(245,190,40,0.5), inset 0 0 8px rgba(255,220,80,0.2); }
+      50%  { box-shadow: 0 0 22px 6px rgba(245,190,40,0.9), inset 0 0 16px rgba(255,220,80,0.4); }
+      100% { box-shadow: 0 0 8px 2px rgba(245,190,40,0.5), inset 0 0 8px rgba(255,220,80,0.2); }
+    }
+    .podium-block.p1 { animation: goldShimmer 2s ease-in-out infinite; border-color: #f5be28 !important; }
+
+    /* ── Story of the Week spotlight ─────────────── */
+    .sotw-wrap { max-width: 1100px; margin: 28px auto 0; padding: 0 24px; }
+    .sotw-card {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border: 2px solid #f59e0b;
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .sotw-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+      background-size: 200% 100%;
+      animation: shimmerBar 2.5s linear infinite;
+    }
+    @keyframes shimmerBar {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .sotw-icon { font-size: 2.8rem; line-height: 1; flex-shrink: 0; }
+    .sotw-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #b45309; margin-bottom: 6px; }
+    .sotw-title { font-size: 1.15rem; font-weight: 800; color: var(--text); margin-bottom: 6px; line-height: 1.3; }
+    .sotw-excerpt { font-size: 0.9rem; color: #374151; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .sotw-meta { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+    .sotw-author { font-size: 0.82rem; font-weight: 600; color: #92400e; }
+    .sotw-likes { font-size: 0.82rem; color: #b45309; }
+
+    /* ── Animated counters ───────────────────────── */
+    .stats-bar strong { transition: none; }
+
     @media (max-width: 768px) {
       header { grid-template-columns: 1fr; text-align: center; padding: 24px 16px; gap: 16px; }
       .header-actions { align-items: center; flex-direction: row; justify-content: center; }
@@ -178,6 +221,23 @@
     <span><strong id="totalLikes">0</strong> Likes</span>
     <span><strong id="categoryCount">0</strong> Categories</span>
   </div>
+  <div class="sotw-wrap" id="sotwWrap" style="display:none">
+    <div class="sotw-card">
+      <div class="sotw-icon">&#127942;</div>
+      <div style="flex:1;min-width:0">
+        <div class="sotw-label">&#11088; Story of the Week</div>
+        <div class="sotw-title" id="sotwTitle"></div>
+        <div class="sotw-excerpt" id="sotwExcerpt"></div>
+        <div class="sotw-meta">
+          <div class="avatar" id="sotwAvatar" style="width:24px;height:24px;font-size:0.65rem"></div>
+          <span class="sotw-author" id="sotwAuthor"></span>
+          <span class="sotw-likes" id="sotwLikes"></span>
+          <button class="read-story-btn" id="sotwBtn" style="margin-left:8px;color:#b45309">Read Story &#8594;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="toolbar">
     <input class="search-box" type="text" id="searchInput" placeholder="Search stories..." oninput="renderStories()" />
     <select class="filter-select" id="categoryFilter" onchange="renderStories()">
@@ -384,6 +444,7 @@
         renderStories();
         updateStats();
         renderPodium();
+        renderSotw();
       })
       .catch(function() {
         showToast('Could not load stories from server.');
@@ -455,13 +516,49 @@
       + '</div>';
   }
 
+  /* ── Animated counter ────────────────────────── */
+  function animateCount(el, target) {
+    var start = 0;
+    var duration = 1200;
+    var step = Math.ceil(target / (duration / 16));
+    var timer = setInterval(function() {
+      start += step;
+      if (start >= target) { start = target; clearInterval(timer); }
+      el.textContent = start;
+    }, 16);
+  }
+
+  /* ── Story of the Week ───────────────────────── */
+  function renderSotw() {
+    if (!storiesCache.length) return;
+    var now = new Date();
+    var weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+    var recent = storiesCache.filter(function(s) { return new Date(s.date) >= weekAgo; });
+    var pool = recent.length ? recent : storiesCache;
+    var best = pool.slice().sort(function(a,b){ return (b.likes||0)-(a.likes||0); })[0];
+    if (!best) return;
+    document.getElementById('sotwTitle').textContent   = best.title;
+    document.getElementById('sotwExcerpt').textContent = best.story;
+    document.getElementById('sotwAuthor').textContent  = best.name;
+    document.getElementById('sotwLikes').textContent   = '&#9829; ' + (best.likes||0) + ' likes';
+    document.getElementById('sotwLikes').innerHTML     = '&#9829; ' + (best.likes||0) + ' likes';
+    var av = document.getElementById('sotwAvatar');
+    av.textContent = initials(best.name);
+    av.style.background = avatarColor(best.name);
+    document.getElementById('sotwBtn').onclick = function() { openDetail(best.id); };
+    document.getElementById('sotwWrap').style.display = 'block';
+  }
+
   /* ── Stats & Podium ───────────────────────────── */
   function updateStats() {
-    document.getElementById('totalCount').textContent = storiesCache.length;
-    document.getElementById('totalLikes').textContent = storiesCache.reduce(function(s,x){ return s+(x.likes||0); },0);
+    var totalStories = storiesCache.length;
+    var totalLikes   = storiesCache.reduce(function(s,x){ return s+(x.likes||0); },0);
     var cats = {};
     storiesCache.forEach(function(s){ if(s.category) cats[s.category]=1; });
-    document.getElementById('categoryCount').textContent = Object.keys(cats).length;
+    var totalCats = Object.keys(cats).length;
+    animateCount(document.getElementById('totalCount'),    totalStories);
+    animateCount(document.getElementById('totalLikes'),    totalLikes);
+    animateCount(document.getElementById('categoryCount'), totalCats);
   }
 
   function renderPodium() {
@@ -526,78 +623,4 @@
   };
   function subCategoryLabel(val) { return SUB_LABELS[val] || val; }
 
-  /* ── Modal ────────────────────────────────────── */
-  function openModal()  { document.getElementById('overlay').classList.add('open'); document.getElementById('inputName').focus(); }
-  function closeModal() { document.getElementById('overlay').classList.remove('open'); clearForm(); }
-  function handleOverlayClick(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
-
-  function clearForm() {
-    ['inputName','inputTitle','inputStory','inputHighlights','inputResults','inputImpact','inputLearnings'].forEach(function(id){ document.getElementById(id).value=''; });
-    document.getElementById('inputCategory').value = '';
-    document.getElementById('inputSubCategory').value = '';
-    document.getElementById('subCategoryGroup').style.display = 'none';
-    document.getElementById('sub-people').style.display = document.getElementById('sub-technology').style.display = document.getElementById('sub-training').style.display = 'none';
-    document.getElementById('titleCount').textContent = document.getElementById('storyCount').textContent = '0';
-  }
-
-  document.getElementById('inputTitle').addEventListener('input', function() { document.getElementById('titleCount').textContent = this.value.length; });
-
-  document.getElementById('inputCategory').addEventListener('change', function() {
-    var v = this.value;
-    var hasSub = (v === 'people' || v === 'technology' || v === 'training-upskilling');
-    document.getElementById('subCategoryGroup').style.display = hasSub ? 'flex' : 'none';
-    document.getElementById('inputSubCategory').value = '';
-    document.getElementById('sub-people').style.display     = (v==='people')              ? '' : 'none';
-    document.getElementById('sub-technology').style.display = (v==='technology')          ? '' : 'none';
-    document.getElementById('sub-training').style.display   = (v==='training-upskilling') ? '' : 'none';
-  });
-
-  function updateStoryCount() { document.getElementById('storyCount').textContent = document.getElementById('inputStory').value.length; }
-
-  function submitStory() {
-    var name       = document.getElementById('inputName').value.trim();
-    var title      = document.getElementById('inputTitle').value.trim();
-    var category   = document.getElementById('inputCategory').value;
-    var story      = document.getElementById('inputStory').value.trim();
-    var subCategory= document.getElementById('inputSubCategory').value;
-    var highlights = document.getElementById('inputHighlights').value.trim();
-    var results    = document.getElementById('inputResults').value.trim();
-    var impact     = document.getElementById('inputImpact').value.trim();
-    var learnings  = document.getElementById('inputLearnings').value.trim();
-
-    if (!name || !title || !category || !story) { showToast('Please fill in all required fields.'); return; }
-    if (story.length < 30) { showToast('Story must be at least 30 characters.'); return; }
-
-    scriptPost({ action:'add', name:name, title:title, category:category, subCategory:subCategory, story:story, highlights:highlights, results:results, impact:impact, learnings:learnings })
-      .then(function() { closeModal(); showToast('Your story has been published!'); setTimeout(loadStories, 1000); })
-      .catch(function() { showToast('Failed to publish. Please try again.'); });
-  }
-
-  /* ── Export ───────────────────────────────────── */
-  function exportToExcel() {
-    if (!storiesCache.length) { showToast('No stories to export.'); return; }
-    var headers = ['Name','Title','Category','Sub-Category','Story','Execution Highlights','Results & Outcomes','Business Impact','Key Learnings','Likes','Date'];
-    var rows = storiesCache.map(function(s) {
-      return [s.name,s.title,cap(s.category),subCategoryLabel(s.subCategory),s.story,s.highlights,s.results,s.impact,s.learnings,s.likes||0,formatDate(s.date)];
-    });
-    var csv = [headers].concat(rows).map(function(row){ return row.map(function(c){ return '"'+String(c||'').replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
-    var blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-    var url  = URL.createObjectURL(blob);
-    var a    = document.createElement('a');
-    a.href=url; a.download='CDC_Success_Stories.csv'; a.click();
-    URL.revokeObjectURL(url);
-    showToast('Exported successfully!');
-  }
-
-  /* ── Toast ────────────────────────────────────── */
-  function showToast(msg) {
-    var t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(function(){ t.classList.remove('show'); }, 3000);
-  }
-
-  loadStories();
-</script>
-</body>
-</html>
+  /* ── Modal ───────────────────────────────
