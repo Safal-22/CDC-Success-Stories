@@ -56,7 +56,7 @@
     .podium-num { font-size: 2rem; font-weight: 900; line-height: 1; font-family: Arial Black, sans-serif; }
     .podium-trophy { font-size: 1.1rem; line-height: 1; margin-bottom: 2px; }
     .podium-likes { font-size: 0.58rem; font-weight: 700; opacity: 0.8; margin-top: 3px; }
-    .podium-block.p1 { height: 110px; background: linear-gradient(180deg,#f5f5f5 0%,#dde2e8 100%); border: 2px solid #c0c8d0; border-bottom: none; color: #3a3a3a; }
+    .podium-block.p1 { height: 110px; background: linear-gradient(180deg,#f5f5f5 0%,#dde2e8 100%); border: 2px solid #f5be28; border-bottom: none; color: #3a3a3a; animation: goldShimmer 2s ease-in-out infinite; }
     .podium-block.p2 { height: 72px;  background: linear-gradient(180deg,#f5f5f5 0%,#dde2e8 100%); border: 2px solid #c0c8d0; border-bottom: none; color: #3a3a3a; }
     .podium-block.p3 { height: 52px;  background: linear-gradient(180deg,#f5f5f5 0%,#dde2e8 100%); border: 2px solid #c0c8d0; border-bottom: none; color: #3a3a3a; }
     .podium-base { display: block; height: 12px; width: 216px; background: linear-gradient(180deg,#dde2e8 0%,#b0bec5 100%); border-radius: 0 0 4px 4px; border: 2px solid #c0c8d0; border-top: none; }
@@ -152,8 +152,6 @@
       50%  { box-shadow: 0 0 22px 6px rgba(245,190,40,0.9), inset 0 0 16px rgba(255,220,80,0.4); }
       100% { box-shadow: 0 0 8px 2px rgba(245,190,40,0.5), inset 0 0 8px rgba(255,220,80,0.2); }
     }
-    .podium-block.p1 { animation: goldShimmer 2s ease-in-out infinite; border-color: #f5be28 !important; }
-
     /* ── Story of the Week spotlight ─────────────── */
     .sotw-wrap { max-width: 1100px; margin: 28px auto 0; padding: 0 24px; }
     .sotw-card {
@@ -532,7 +530,6 @@
       return;
     }
     grid.innerHTML = stories.map(function(s) { return cardHTML(s); }).join('');
-    updateStats();
   }
 
   function cardHTML(s) {
@@ -635,4 +632,169 @@
     var already  = localStorage.getItem(likedKey) === '1';
     var delta    = already ? -1 : 1;
     localStorage.setItem(likedKey, already ? '0' : '1');
-    btn.classList.t
+    btn.classList.toggle('liked', !already);
+    for (var i=0;i<storiesCache.length;i++) {
+      if (String(storiesCache[i].id)===String(id)) {
+        storiesCache[i].likes = (storiesCache[i].likes||0) + delta;
+        btn.querySelector('span').textContent = storiesCache[i].likes;
+        break;
+      }
+    }
+    updateStats();
+    renderPodium();
+    scriptPost({ action:'like', id:id, delta:delta }).catch(function(){ showToast('Like could not be saved.'); });
+  }
+
+  function openEditModal(id) {
+    var s = null;
+    for (var i = 0; i < storiesCache.length; i++) {
+      if (String(storiesCache[i].id) === String(id)) { s = storiesCache[i]; break; }
+    }
+    if (!s) return;
+    if (!isOwner(id)) { showToast('You can only edit your own stories.'); return; }
+    openModal(s);
+  }
+
+  function deleteStory(id) {
+    if (!isOwner(id)) { showToast('You can only delete your own stories.'); return; }
+    if (!confirm('Delete this story? This cannot be undone.')) return;
+    var token = localStorage.getItem(tokenKey(id));
+    scriptPost({ action:'delete', id:id, token:token })
+      .then(function() { showToast('Story deleted.'); setTimeout(loadStories, 1000); showMainView(); })
+      .catch(function() { showToast('Delete failed. Please try again.'); });
+  }
+
+  /* ── Sub-category labels ──────────────────────── */
+  var SUB_LABELS = {
+    'hiring-onboarding':'Hiring & Onboarding','employee-engagement':'Employee Engagement',
+    'diversity-inclusion':'Diversity & Inclusion','team-collaboration':'Team Collaboration',
+    'leadership-development':'Leadership Development','retention-attrition':'Retention / Attrition',
+    'conflict-resolution':'Conflict Resolution','process-automation':'Process Automation',
+    'ai-ml':'AI & Machine Learning','cloud-migration':'Cloud Migration','cybersecurity':'Cybersecurity',
+    'agile-devops':'Agile / DevOps','platform-modernization':'Platform Modernization',
+    'cost-optimization':'Cost Optimization','performance-scalability':'Performance & Scalability',
+    'incident-management':'Incident Management','problem-management':'Problem Management',
+    'disaster-recovery':'Disaster Recovery','leadership-mgmt-training':'Leadership & Mgmt Training',
+    'technical-skills-training':'Technical Skills Training','soft-skills-development':'Soft Skills Development',
+    'digital-tools-training':'Digital Tools Training','certification-achievement':'Certification Achievement',
+    'compliance-regulatory':'Compliance & Regulatory','mentoring-coaching':'Mentoring & Coaching',
+    'elearning-selfpaced':'E-Learning Programs','knowledge-transfer':'Knowledge Transfer'
+  };
+  function subCategoryLabel(val) { return SUB_LABELS[val] || val; }
+
+  /* ── Modal ────────────────────────────────────── */
+  function openModal(storyToEdit) {
+    editingId = storyToEdit ? storyToEdit.id : null;
+    var isEdit = !!storyToEdit;
+    document.getElementById('modalTitle').textContent     = isEdit ? 'Edit Your Story'   : 'Share Your Story';
+    document.getElementById('modalSub').textContent       = isEdit ? 'Update your story details below.' : 'Your journey could inspire thousands of people.';
+    document.getElementById('modalSubmitBtn').textContent = isEdit ? 'Save Changes'       : 'Publish Story';
+    if (isEdit) {
+      document.getElementById('inputName').value        = storyToEdit.name        || '';
+      document.getElementById('inputTitle').value       = storyToEdit.title       || '';
+      document.getElementById('inputStory').value       = storyToEdit.story       || '';
+      document.getElementById('inputHighlights').value  = storyToEdit.highlights  || '';
+      document.getElementById('inputResults').value     = storyToEdit.results     || '';
+      document.getElementById('inputImpact').value      = storyToEdit.impact      || '';
+      document.getElementById('inputLearnings').value   = storyToEdit.learnings   || '';
+      document.getElementById('inputCategory').value    = storyToEdit.category    || '';
+      document.getElementById('titleCount').textContent = (storyToEdit.title || '').length;
+      document.getElementById('storyCount').textContent = (storyToEdit.story || '').length;
+      document.getElementById('inputCategory').dispatchEvent(new Event('change'));
+      document.getElementById('inputSubCategory').value = storyToEdit.subCategory || '';
+    }
+    document.getElementById('overlay').classList.add('open');
+    document.getElementById('inputName').focus();
+  }
+
+  function closeModal() { document.getElementById('overlay').classList.remove('open'); editingId = null; clearForm(); }
+  function handleOverlayClick(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
+
+  function clearForm() {
+    ['inputName','inputTitle','inputStory','inputHighlights','inputResults','inputImpact','inputLearnings'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('inputCategory').value = '';
+    document.getElementById('inputSubCategory').value = '';
+    document.getElementById('subCategoryGroup').style.display = 'none';
+    document.getElementById('sub-people').style.display = document.getElementById('sub-technology').style.display = document.getElementById('sub-training').style.display = 'none';
+    document.getElementById('titleCount').textContent = document.getElementById('storyCount').textContent = '0';
+  }
+
+  document.getElementById('inputTitle').addEventListener('input', function() { document.getElementById('titleCount').textContent = this.value.length; });
+
+  document.getElementById('inputCategory').addEventListener('change', function() {
+    var v = this.value;
+    var hasSub = (v === 'people' || v === 'technology' || v === 'training-upskilling');
+    document.getElementById('subCategoryGroup').style.display = hasSub ? 'flex' : 'none';
+    document.getElementById('inputSubCategory').value = '';
+    document.getElementById('sub-people').style.display     = (v==='people')              ? '' : 'none';
+    document.getElementById('sub-technology').style.display = (v==='technology')          ? '' : 'none';
+    document.getElementById('sub-training').style.display   = (v==='training-upskilling') ? '' : 'none';
+  });
+
+  function updateStoryCount() { document.getElementById('storyCount').textContent = document.getElementById('inputStory').value.length; }
+
+  function submitStory() {
+    var name       = document.getElementById('inputName').value.trim();
+    var title      = document.getElementById('inputTitle').value.trim();
+    var category   = document.getElementById('inputCategory').value;
+    var story      = document.getElementById('inputStory').value.trim();
+    var subCategory= document.getElementById('inputSubCategory').value;
+    var highlights = document.getElementById('inputHighlights').value.trim();
+    var results    = document.getElementById('inputResults').value.trim();
+    var impact     = document.getElementById('inputImpact').value.trim();
+    var learnings  = document.getElementById('inputLearnings').value.trim();
+
+    if (!name || !title || !category || !story) { showToast('Please fill in all required fields.'); return; }
+    if (story.length < 30) { showToast('Story must be at least 30 characters.'); return; }
+
+    if (editingId) {
+      // Edit existing story — pass token to authenticate ownership
+      var token = localStorage.getItem(tokenKey(editingId));
+      scriptPost({ action:'update', id:editingId, token:token, name:name, title:title, category:category, subCategory:subCategory, story:story, highlights:highlights, results:results, impact:impact, learnings:learnings })
+        .then(function() { closeModal(); showToast('Your story has been updated!'); setTimeout(loadStories, 1000); })
+        .catch(function() { showToast('Failed to update. Please try again.'); });
+    } else {
+      // New story — generate a client token, send it with the request
+      var newToken = generateUUID();
+      scriptPost({ action:'add', token:newToken, name:name, title:title, category:category, subCategory:subCategory, story:story, highlights:highlights, results:results, impact:impact, learnings:learnings })
+        .then(function(resp) {
+          closeModal();
+          showToast('Your story has been published!');
+          // mode:no-cors means we can't read the response body, so we reload
+          // and then claim ownership by matching the token we sent
+          setTimeout(function() {
+            loadStoriesAndClaim(newToken);
+          }, 1500);
+        })
+        .catch(function() { showToast('Failed to publish. Please try again.'); });
+    }
+  }
+
+  /* ── Export ───────────────────────────────────── */
+  function exportToExcel() {
+    if (!storiesCache.length) { showToast('No stories to export.'); return; }
+    var headers = ['Name','Title','Category','Sub-Category','Story','Execution Highlights','Results & Outcomes','Business Impact','Key Learnings','Likes','Date'];
+    var rows = storiesCache.map(function(s) {
+      return [s.name,s.title,cap(s.category),subCategoryLabel(s.subCategory),s.story,s.highlights,s.results,s.impact,s.learnings,s.likes||0,formatDate(s.date)];
+    });
+    var csv = [headers].concat(rows).map(function(row){ return row.map(function(c){ return '"'+String(c||'').replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
+    var blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href=url; a.download='CDC_Success_Stories.csv'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('Exported successfully!');
+  }
+
+  /* ── Toast ────────────────────────────────────── */
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 3000);
+  }
+
+  loadStories();
+</script>
+</body>
+</html>
