@@ -103,6 +103,8 @@
     .likes-btn:hover, .likes-btn.liked { border-color: #fb7185; color: #e11d48; background: #fff1f2; }
     .delete-btn { background: none; border: 1px solid var(--border); border-radius: 20px; padding: 5px 10px; font-size: 0.85rem; cursor: pointer; color: var(--muted); transition: all 0.15s; }
     .delete-btn:hover { border-color: #f87171; background: #fff1f2; }
+    .edit-btn { background: none; border: 1px solid var(--border); border-radius: 20px; padding: 5px 10px; font-size: 0.85rem; cursor: pointer; color: var(--muted); transition: all 0.15s; }
+    .edit-btn:hover { border-color: var(--primary); background: #eef2ff; color: var(--primary); }
 
     .empty { grid-column: 1 / -1; text-align: center; padding: 64px 24px; color: var(--muted); }
     .empty svg { opacity: 0.3; margin-bottom: 16px; }
@@ -265,8 +267,8 @@
 <!-- Add Story Modal -->
 <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
   <div class="modal" id="modal">
-    <h2>Share Your Story</h2>
-    <p class="sub">Your journey could inspire thousands of people.</p>
+    <h2 id="modalTitle">Share Your Story</h2>
+    <p class="sub" id="modalSub">Your journey could inspire thousands of people.</p>
     <div class="form-group">
       <label for="inputName">Your Name *</label>
       <input type="text" id="inputName" placeholder="e.g. Alex Johnson" maxlength="60" />
@@ -347,7 +349,7 @@
     </div>
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-submit" onclick="submitStory()">Publish Story</button>
+      <button class="btn btn-submit" id="modalSubmitBtn" onclick="submitStory()">Publish Story</button>
     </div>
   </div>
 </div>
@@ -360,6 +362,26 @@
   const AVATAR_COLORS = ['#4f46e5','#7c3aed','#db2777','#dc2626','#d97706','#059669','#0284c7','#0891b2','#65a30d','#9333ea'];
 
   var storiesCache = [];
+  var editingId    = null;  // story ID currently being edited (null = new story)
+
+  /* ── Ownership helpers ────────────────────────────────────────── */
+  function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
+
+  function ownerKey(id)  { return 'owner_' + id; }
+  function tokenKey(id)  { return 'token_' + id; }
+
+  // Returns true if the current browser owns the story (has the secret token)
+  function isOwner(id) { return !!localStorage.getItem(tokenKey(id)); }
+
+  // Persist ownership after a successful add
+  function claimOwnership(id, token) {
+    localStorage.setItem(tokenKey(id), token);
+  }
 
   /* ── Utility ──────────────────────────────────── */
   function esc(str) {
@@ -427,7 +449,10 @@
       + sectionsHtml
       + '<div class="detail-footer">'
       +   '<button class="likes-btn' + (isLiked ? ' liked' : '') + '" id="detail-like-btn" onclick="toggleLike(\'' + esc(s.id) + '\',this)">&#9829; <span>' + (s.likes||0) + '</span></button>'
-      +   '<button class="delete-btn" onclick="deleteStory(\'' + esc(s.id) + '\')">&#128465; Delete</button>'
+      +   '<div style="display:flex;gap:8px">'
+      +     (isOwner(s.id) ? '<button class="edit-btn" onclick="openEditModal(\'' + esc(s.id) + '\')">&#9998; Edit</button>' : '')
+      +     (isOwner(s.id) ? '<button class="delete-btn" onclick="deleteStory(\'' + esc(s.id) + '\')">&#128465; Delete</button>' : '')
+      +   '</div>'
       + '</div>';
 
     document.getElementById('detailContent').innerHTML = html;
@@ -441,6 +466,30 @@
       .then(function(r) { return r.json(); })
       .then(function(data) {
         storiesCache = data.stories || [];
+        renderStories();
+        updateStats();
+        renderPodium();
+        renderSotw();
+      })
+      .catch(function() {
+        showToast('Could not load stories from server.');
+        storiesCache = [];
+        renderStories();
+      });
+  }
+
+  // After publishing a new story, reload and claim the story whose token matches
+  function loadStoriesAndClaim(token) {
+    fetch(SCRIPT_URL + '?action=get', { redirect: 'follow' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        storiesCache = data.stories || [];
+        for (var i = 0; i < storiesCache.length; i++) {
+          if (storiesCache[i].token === token) {
+            claimOwnership(storiesCache[i].id, token);
+            break;
+          }
+        }
         renderStories();
         updateStats();
         renderPodium();
@@ -510,7 +559,8 @@
       +   '</div>'
       +   '<div style="display:flex;gap:8px;align-items:center">'
       +     '<button class="likes-btn ' + (isLiked ? 'liked' : '') + '" onclick="toggleLike(\'' + sid + '\',this)">&#9829; <span>' + (s.likes||0) + '</span></button>'
-      +     '<button class="delete-btn" onclick="deleteStory(\'' + sid + '\')" title="Delete">&#128465;</button>'
+      +     (isOwner(sid) ? '<button class="edit-btn" onclick="openEditModal(\'' + sid + '\')" title="Edit">&#9998;</button>' : '')
+      +     (isOwner(sid) ? '<button class="delete-btn" onclick="deleteStory(\'' + sid + '\')" title="Delete">&#128465;</button>' : '')
       +   '</div>'
       + '</div>'
       + '</div>';
@@ -585,42 +635,4 @@
     var already  = localStorage.getItem(likedKey) === '1';
     var delta    = already ? -1 : 1;
     localStorage.setItem(likedKey, already ? '0' : '1');
-    btn.classList.toggle('liked', !already);
-    for (var i=0;i<storiesCache.length;i++) {
-      if (String(storiesCache[i].id)===String(id)) {
-        storiesCache[i].likes = (storiesCache[i].likes||0) + delta;
-        btn.querySelector('span').textContent = storiesCache[i].likes;
-        break;
-      }
-    }
-    updateStats();
-    renderPodium();
-    scriptPost({ action:'like', id:id, delta:delta }).catch(function(){ showToast('Like could not be saved.'); });
-  }
-
-  function deleteStory(id) {
-    if (!confirm('Delete this story? This cannot be undone.')) return;
-    scriptPost({ action:'delete', id:id })
-      .then(function() { showToast('Story deleted.'); setTimeout(loadStories, 1000); showMainView(); })
-      .catch(function() { showToast('Delete failed. Please try again.'); });
-  }
-
-  /* ── Sub-category labels ──────────────────────── */
-  var SUB_LABELS = {
-    'hiring-onboarding':'Hiring & Onboarding','employee-engagement':'Employee Engagement',
-    'diversity-inclusion':'Diversity & Inclusion','team-collaboration':'Team Collaboration',
-    'leadership-development':'Leadership Development','retention-attrition':'Retention / Attrition',
-    'conflict-resolution':'Conflict Resolution','process-automation':'Process Automation',
-    'ai-ml':'AI & Machine Learning','cloud-migration':'Cloud Migration','cybersecurity':'Cybersecurity',
-    'agile-devops':'Agile / DevOps','platform-modernization':'Platform Modernization',
-    'cost-optimization':'Cost Optimization','performance-scalability':'Performance & Scalability',
-    'incident-management':'Incident Management','problem-management':'Problem Management',
-    'disaster-recovery':'Disaster Recovery','leadership-mgmt-training':'Leadership & Mgmt Training',
-    'technical-skills-training':'Technical Skills Training','soft-skills-development':'Soft Skills Development',
-    'digital-tools-training':'Digital Tools Training','certification-achievement':'Certification Achievement',
-    'compliance-regulatory':'Compliance & Regulatory','mentoring-coaching':'Mentoring & Coaching',
-    'elearning-selfpaced':'E-Learning Programs','knowledge-transfer':'Knowledge Transfer'
-  };
-  function subCategoryLabel(val) { return SUB_LABELS[val] || val; }
-
-  /* ── Modal ────────────────────
+    btn.classList.t
