@@ -432,8 +432,8 @@
       + '<div class="detail-footer">'
       +   '<button class="likes-btn' + (isLiked ? ' liked' : '') + '" id="detail-like-btn" onclick="toggleLike(\'' + esc(s.id) + '\',this)">&#9829; <span>' + (s.likes||0) + '</span></button>'
       +   '<div style="display:flex;gap:8px">'
-      +     (isOwner(s.id) ? '<button class="edit-btn" onclick="openEditModal(\'' + esc(s.id) + '\')">&#9998; Edit</button>' : '')
-      +     (isOwner(s.id) ? '<button class="delete-btn" onclick="deleteStory(\'' + esc(s.id) + '\')">&#128465; Delete</button>' : '')
+      +     '<button class="edit-btn" onclick="openEditModal(\'' + esc(s.id) + '\')">&#9998; Edit</button>'
+      +     '<button class="delete-btn" onclick="deleteStory(\'' + esc(s.id) + '\')">&#128465; Delete</button>'
       +   '</div>'
       + '</div>';
 
@@ -541,8 +541,8 @@
       +   '</div>'
       +   '<div style="display:flex;gap:8px;align-items:center">'
       +     '<button class="likes-btn ' + (isLiked ? 'liked' : '') + '" onclick="toggleLike(\'' + sid + '\',this)">&#9829; <span>' + (s.likes||0) + '</span></button>'
-      +     (isOwner(sid) ? '<button class="edit-btn" onclick="openEditModal(\'' + sid + '\')" title="Edit">&#9998;</button>' : '')
-      +     (isOwner(sid) ? '<button class="delete-btn" onclick="deleteStory(\'' + sid + '\')" title="Delete">&#128465;</button>' : '')
+      +     '<button class="edit-btn" onclick="openEditModal(\'' + sid + '\')" title="Edit">&#9998;</button>'
+      +     '<button class="delete-btn" onclick="deleteStory(\'' + sid + '\')" title="Delete">&#128465;</button>'
       +   '</div>'
       + '</div>'
       + '</div>';
@@ -636,12 +636,10 @@
       if (String(storiesCache[i].id) === String(id)) { s = storiesCache[i]; break; }
     }
     if (!s) return;
-    if (!isOwner(id)) { showToast('You can only edit your own stories.'); return; }
     openModal(s);
   }
 
   function deleteStory(id) {
-    if (!isOwner(id)) { showToast('You can only delete your own stories.'); return; }
     if (!confirm('Delete this story? This cannot be undone.')) return;
     scriptPost({ action:'delete', id:id })
       .then(function() {
