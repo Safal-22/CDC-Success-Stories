@@ -363,23 +363,7 @@
   var editingId    = null;  // story ID currently being edited (null = new story)
 
   /* ── Ownership helpers ────────────────────────────────────────── */
-  function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0;
-      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-    });
-  }
-
-  function ownerKey(id)  { return 'owner_' + id; }
-  function tokenKey(id)  { return 'token_' + id; }
-
-  // Returns true if the current browser owns the story (has the secret token)
-  function isOwner(id) { return !!localStorage.getItem(tokenKey(id)); }
-
-  // Persist ownership after a successful add
-  function claimOwnership(id, token) {
-    localStorage.setItem(tokenKey(id), token);
-  }
+  function isOwner(id) { return !!localStorage.getItem('owner_' + id); }
 
   /* ── Utility ──────────────────────────────────── */
   function esc(str) {
@@ -477,14 +461,15 @@
   }
 
   // After publishing a new story, reload and claim the story whose token matches
-  function loadStoriesAndClaim(token) {
+  function loadStoriesAndClaim(pendingName, pendingTitle) {
     fetch(SCRIPT_URL + '?action=get', { redirect: 'follow' })
       .then(function(r) { return r.json(); })
       .then(function(data) {
         storiesCache = data.stories || [];
         for (var i = 0; i < storiesCache.length; i++) {
-          if (storiesCache[i].token === token) {
-            claimOwnership(storiesCache[i].id, token);
+          var s = storiesCache[i];
+          if (s.name === pendingName && s.title === pendingTitle && !localStorage.getItem('owner_' + s.id)) {
+            localStorage.setItem('owner_' + s.id, '1');
             break;
           }
         }
@@ -658,9 +643,13 @@
   function deleteStory(id) {
     if (!isOwner(id)) { showToast('You can only delete your own stories.'); return; }
     if (!confirm('Delete this story? This cannot be undone.')) return;
-    var token = localStorage.getItem(tokenKey(id));
-    scriptPost({ action:'delete', id:id, token:token })
-      .then(function() { showToast('Story deleted.'); setTimeout(loadStories, 1000); showMainView(); })
+    scriptPost({ action:'delete', id:id })
+      .then(function() {
+        localStorage.removeItem('owner_' + id);
+        showToast('Story deleted.');
+        setTimeout(loadStories, 1000);
+        showMainView();
+      })
       .catch(function() { showToast('Delete failed. Please try again.'); });
   }
 
@@ -748,22 +737,19 @@
     if (story.length < 30) { showToast('Story must be at least 30 characters.'); return; }
 
     if (editingId) {
-      // Edit existing story — pass token to authenticate ownership
-      var token = localStorage.getItem(tokenKey(editingId));
-      scriptPost({ action:'update', id:editingId, token:token, name:name, title:title, category:category, subCategory:subCategory, story:story, highlights:highlights, results:results, impact:impact, learnings:learnings })
+      scriptPost({ action:'update', id:editingId, name:name, title:title, category:category, subCategory:subCategory, story:story, highlights:highlights, results:results, impact:impact, learnings:learnings })
         .then(function() { closeModal(); showToast('Your story has been updated!'); setTimeout(loadStories, 1000); })
         .catch(function() { showToast('Failed to update. Please try again.'); });
     } else {
       // New story — generate a client token, send it with the request
-      var newToken = generateUUID();
-      scriptPost({ action:'add', token:newToken, name:name, title:title, category:category, subCategory:subCategory, story:story, highlights:highlights, results:results, impact:impact, learnings:learnings })
-        .then(function(resp) {
+      var pendingName  = name;
+      var pendingTitle = title;
+      scriptPost({ action:'add', name:name, title:title, category:category, subCategory:subCategory, story:story, highlights:highlights, results:results, impact:impact, learnings:learnings })
+        .then(function() {
           closeModal();
           showToast('Your story has been published!');
-          // mode:no-cors means we can't read the response body, so we reload
-          // and then claim ownership by matching the token we sent
           setTimeout(function() {
-            loadStoriesAndClaim(newToken);
+            loadStoriesAndClaim(pendingName, pendingTitle);
           }, 1500);
         })
         .catch(function() { showToast('Failed to publish. Please try again.'); });
